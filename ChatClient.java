@@ -17,13 +17,13 @@ public class ChatClient {
             if (ScpProtocol.isValidHostname(args[0])) {
                 HOSTNAME = args[0];
             } else {
-                return;
+                System.exit(-1);
             }
             // Check that port number is valid
             if (ScpProtocol.isValidPort(args[1])) {
                 PORT_NUMBER = Integer.parseInt(args[1]);
             } else {
-                return;
+                System.exit(-1);
             }
         } else {
             HOSTNAME = ScpProtocol.default_hostname;
