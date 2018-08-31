@@ -45,7 +45,11 @@ public class ChatServer {
              BufferedReader in = new BufferedReader(
                      new InputStreamReader((clientSocket.getInputStream())))
         ) {
-
+            String latest_message = in.readLine();
+            if (!latest_message.matches("^(SCP CONNECT) $(SCP END)")) {
+                System.out.println("Malformed message received. " +
+                        "Expected SPC CONNECT, but instead got " + latest_message);
+            }
         }
 
         // create the socket server
