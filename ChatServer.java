@@ -13,36 +13,29 @@ import java.net.Socket;
 public class ChatServer {
 
     public static void main(String[] args) throws IOException {
-        String HOST_NAME, WELCOME_MSG;
+        String HOSTNAME, WELCOME_MSG;
         int PORT_NUMBER;
 
-        // Check that correct number of arguments are given and import arguments
+        // Check that correct number of arguments are given, validate and save arguments
         if (args.length == 3) {
-            // Check validity of the hostname and store if valid
-            if (args[0].contains(" ")) {
-                System.out.println("Invalid client hostname. Given argument was:" + args[0]);
-                return;
+            // Check that hostname is valid
+            if (ScpProtocol.isValidHostname(args[0])) {
+                HOSTNAME = args[0];
             } else {
-                HOST_NAME = args[0]; // Hostname of client
+                return;
             }
-            // Check for validity of port number and store if valid
-            if (!args[1].matches("[0-9]+")) {
-                System.out.println("Invalid port number. Expected an integer value. Given argument was: " + args[1]);
-                return;
+            // Check that port number is valid
+            if (ScpProtocol.isValidPort(args[1])) {
+                PORT_NUMBER = Integer.parseInt(args[1]);
             } else {
-                PORT_NUMBER = Integer.parseInt(args[1]); // Port for sending to client
-                if (PORT_NUMBER < 1023 || PORT_NUMBER > 65535) {
-                    System.out.println("Invalid port number. Port numbers should be between 1023 and 65535. " +
-                            "Given port number was " + args[1]);
-                    return;
-                }
+                return;
             }
             // Welcome message has no validity constraints
-            WELCOME_MSG = args[2]; // Welcome message to send to client
+            WELCOME_MSG = args[2];
         } else {
-            HOST_NAME = "127.0.0.1";
-            PORT_NUMBER = 3400;
-            WELCOME_MSG = "Welcome to SCP";
+            HOSTNAME = ScpProtocol.default_hostname;
+            PORT_NUMBER = ScpProtocol.default_port;
+            WELCOME_MSG = ScpProtocol.default_welcome_message;
         }
 
         try (ServerSocket serverSocket = new ServerSocket(PORT_NUMBER);

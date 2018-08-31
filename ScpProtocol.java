@@ -4,29 +4,50 @@
 // This contains methods that are used to format SCP message strings.
 
 public class ScpProtocol {
+    public static final String default_hostname = "127.0.0.1";
+    public static final int default_port = 3400;
+    public static final String default_welcome_message = "Welcome to SCP";
 
     /**
      * Takes hostname and returns true if it is valid
+     * Will print to terminal output if error is found
      *
      * @param hostname a hostname
      * @return boolean true if valid
      */
     public static boolean isValidHostname(String hostname) {
-        return hostname.matches("[0-9][a-z][A-Z]+");
+        // Check for illegal spaces in hostname
+        if (hostname.contains(" ")) {
+            System.out.println("Invalid client hostname. Hostname should not contain spaces. " +
+                    "Given argument was:" + hostname);
+            return false;
+        }
+        // Hostname is valid
+        return true;
     }
 
     /**
      * Takes a value for a port number and returns true if it is valid
      * Port numbers should be > 1023 and < 65535, and only contain digits
+     * Will print to terminal output if error is found
      *
      * @param portnumber a port number value
      * @return true if value is a valid port number
      */
     public static boolean isValidPort(String portnumber) {
-        return (portnumber.matches("[0-9]") &&
-                Integer.parseInt(portnumber) > 1023 &&
-                Integer.parseInt(portnumber) < 65535
-        );
+        // Check that port number is integer
+        if (!portnumber.matches("[0-9]")) {
+            System.out.println("Invalid port number. Expected an integer value. Given argument was: " + portnumber);
+            return false;
+        }
+        // Check that port number is within limits imposed by system
+        if (Integer.parseInt(portnumber) < 1023 || Integer.parseInt(portnumber) > 65535) {
+            System.out.println("Invalid port number. Port numbers should be between 1023 and 65535. " +
+                    "Given port number was " + portnumber);
+            return false;
+        }
+        // Port number is valid
+        return true;
     }
 
     /**
