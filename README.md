@@ -1,3 +1,3 @@
-"# simple-scp" 
+# simple-scp
 
 Author: Jordan Maddock
