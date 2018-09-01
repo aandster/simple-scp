@@ -39,6 +39,12 @@ public class ChatServer {
             WELCOME_MSG = ScpProtocol.default_welcome_message;
         }
 
+        // ScpSession Object for this instance
+        ScpSession session = new ScpSession();
+        session.setLocalHostname(LOCAL_HOSTNAME);
+        session.setLocalPort(LOCAL_PORT);
+
+        // Initiate communications
         try (ServerSocket serverSocket = new ServerSocket(LOCAL_PORT);
              Socket clientSocket = serverSocket.accept();
              PrintWriter out = new PrintWriter(
@@ -46,21 +52,55 @@ public class ChatServer {
              BufferedReader in = new BufferedReader(
                      new InputStreamReader((clientSocket.getInputStream())))
         ) {
+            // todo implement this code better without repeated blocks of code
+            // todo check all the regexes
             // Start checking for SCP CONNECT message
-            ScpSession session = new ScpSession();
             session.setLatest(in.readLine());
-            if (!session.latest().matches("^(SCP CONNECT) $(SCP END)")) {
-                System.out.println("Malformed message received. " +
-                        "Expected SPC CONNECT, but instead got " + session.latest());
+            if (!session.latest().matches("(SCP CONNECT)")) {
+                System.out.println(ScpProtocol.malformedMessage("SCP Connect", session.latest()));
                 System.exit(-1);
             }
-
-
+            // SERVERADDRESS field
+            session.setLatest(in.readLine());
+            if (session.latest().matches("^(SERVERADDRESS )")) {
+                session.setRemoteHostname(session.latest().substring("SERVERADDRESS ".length(), session.latest().length()));
+            } else {
+                System.out.println(ScpProtocol.malformedMessage("SERVERADDRESS <hostname>", session.latest()));
+                System.exit(-1);
+            }
+            // SERVERPORT field
+            session.setLatest(in.readLine());
+            if (session.latest().matches("^(SERVERPORT )[0-9]+")) {
+                session.setRemotePort(Integer.parseInt(session.latest().substring("SERVERPORT ".length(), session.latest().length())));
+            } else {
+                System.out.println(ScpProtocol.malformedMessage("SERVERPORT <serverport>", session.latest()));
+                System.exit(-1);
+            }
+            // REQUESTCREATED field
+            session.setLatest(in.readLine());
+            if (session.latest().matches("(REQUESTCREATED )[0-9]+") &&
+                    session.latest().substring("REQUESTCREATED ".length(), session.latest().length() - 1).matches("[0-9]*")) {
+                // Check time differential
+                if (System.currentTimeMillis() - Integer.parseInt(session.latest().substring("REQUESTCREATED ".length(), session.latest().length() - 1)) <= 5) {
+                    session.setTimeConnectInitiated(Integer.parseInt(session.latest().substring("REQUESTCREATED ".length(), session.latest().length())));
+                } else {
+                    System.out.println("CONNECT message has expired.");
+                    System.exit(-1);
+                }
+            } else {
+                System.out.println(ScpProtocol.malformedMessage("REQUESTCREATED <timerequestcreated>", session.latest()));
+                System.exit(-1);
+            }
+            // USERNAME field
+            session.setLatest(in.readLine());
+            if (session.latest().matches("^(USERNAME \") $(\")")) {
+                session.setUsername(session.latest().substring("USERNAME \"".length(), session.latest().length() - 1));
+            } else {
+                System.out.println(ScpProtocol.malformedMessage("USERNAME \"<username>\"", session.latest()));
+                System.exit(-1);
+            }
+            System.out.println("CONNECT MESSAGE successfully received.");
         }
-
-        // create the socket server
-
-        // wait for connection request
 
         // when receiving connection request, check for time difference
         // if time diff is greater than five seconds, send a rejection
