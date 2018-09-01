@@ -47,10 +47,12 @@ public class ChatServer {
                      new InputStreamReader((clientSocket.getInputStream())))
         ) {
             // Start checking for SCP CONNECT message
-            String latest_message = in.readLine();
-            if (!latest_message.matches("^(SCP CONNECT) $(SCP END)")) {
+            ScpSession session = new ScpSession();
+            session.setLatest(in.readLine());
+            if (!session.latest().matches("^(SCP CONNECT) $(SCP END)")) {
                 System.out.println("Malformed message received. " +
-                        "Expected SPC CONNECT, but instead got " + latest_message);
+                        "Expected SPC CONNECT, but instead got " + session.latest());
+                System.exit(-1);
             }
 
 
