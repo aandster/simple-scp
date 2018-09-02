@@ -286,6 +286,13 @@ public class ChatServer {
                         state = ScpProtocol.state.exiting;
                         break;
                     }
+                    // Print the chats
+                    session.setLatest(incoming.readLine());
+                    System.out.println("Message received: ");
+                    while (!session.latest().equals("SCP END")) {
+                        System.out.println(session.latest());
+                        session.setLatest(incoming.readLine());
+                    }
                 } else if (session.latest().startsWith("SCP DISCONNECT")) {
                     session.setLatest(incoming.readLine());
                     if (!session.latest().startsWith("SCP END")) {

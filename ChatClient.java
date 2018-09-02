@@ -61,7 +61,7 @@ public class ChatClient {
 
         while (state != ScpProtocol.state.exiting) {
             session.setLocalHostname(socket.getLocalAddress().toString());
-            session.setLocalPort(socket.getPort());
+            session.setLocalPort(socket.getLocalPort());
 
             // Start checking for SCP CONNECT message
             if (state == ScpProtocol.state.disconnected) {
@@ -120,7 +120,7 @@ public class ChatClient {
                     // Validate ACCEPT CLIENTPORT
                     session.setLatest(incoming.readLine());
                     if (session.latest().startsWith("CLIENTPORT ")) {
-                        int received_data = Integer.parseInt(session.latest().substring("CLIENTADDRESS ".length(), session.latest().length()));
+                        int received_data = Integer.parseInt(session.latest().substring("CLIENTPORT ".length(), session.latest().length()));
                         if (session.getLocalPort() != received_data) {
                             // Ports don't match
                             System.out.println("Client port does not match this port. Expected "
@@ -165,7 +165,7 @@ public class ChatClient {
                     session.setLatest(incoming.readLine());
                     if (session.latest().startsWith("REMOTEADDRESS ")) {
                         String received_data = session.latest().substring("REMOTEADDRESS ".length(), session.latest().length());
-                        if (!received_data.equalsIgnoreCase(session.getRemoteHostname())) {
+                        if (!received_data.equalsIgnoreCase(session.getLocalHostname())) {
                             // Server hostname doesn't match connected username
                             System.out.println("Client address specified does not match this hostname. Expected: " +
                                     session.getLocalHostname() + " but got " + received_data);
@@ -214,6 +214,14 @@ public class ChatClient {
                         System.out.println(ScpProtocol.malformedMessage("<line break>", session.latest()));
                         state = ScpProtocol.state.exiting;
                         break;
+                    }
+
+                    // Print the chats
+                    session.setLatest(incoming.readLine());
+                    System.out.println("Message received: ");
+                    while (!session.latest().equals("SCP END")) {
+                        System.out.println(session.latest());
+                        session.setLatest(incoming.readLine());
                     }
                 } else if (session.latest().startsWith("SCP DISCONNECT")) {
                     session.setLatest(incoming.readLine());
