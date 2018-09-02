@@ -1,11 +1,27 @@
-// SCP Worker
-// Author: Jordan Maddock
 // Date: 31/08/2018
 // This contains methods that are used to format SCP message strings.
-
 public class ScpProtocol {
+
+    // SCP Worker
     public static final String default_hostname = "127.0.0.1";
+    // Author: Jordan Maddock
     public static final int default_port = 3400;
+
+    /**
+     * Formats a SCP REJECT message
+     *
+     * @param time_difference unacceptable time difference
+     * @param remote_address  address of client being rejected
+     * @return formatted string
+     */
+    public static String REJECT(long time_difference, String remote_address) {
+        return ("SCP REJECT\n" +
+                "TIMEDIFFERENTIAL " + time_difference + "\n" +
+                "REMOTEADDRESS " + remote_address + "\n" +
+                "SCP END"
+        );
+    }
+
     public static final String default_welcome_message = "Welcome to SCP";
 
     /**
@@ -59,7 +75,7 @@ public class ScpProtocol {
      * @param username        client username
      * @return formatted string
      */
-    public static String CONNECT(String server_address, int server_port, int request_created, String username) {
+    public static String CONNECT(String server_address, int server_port, long request_created, String username) {
         return ("SCP CONNECT\n" +
                 "SERVERADDRESS " + server_address + "\n" +
                 "SERVERPORT " + server_port + "\n" +
@@ -69,19 +85,10 @@ public class ScpProtocol {
         );
     }
 
-    /**
-     * Formats a SCP REJECT message
-     *
-     * @param time_difference unacceptable time difference
-     * @param remote_address  address of client being rejected
-     * @return formatted string
-     */
-    public static String REJECT(int time_difference, String remote_address) {
-        return ("SCP REJECT\n" +
-                "TIMEDIFFERENTIAL " + time_difference + "\n" +
-                "REMOTEADDRESS " + remote_address + "\n" +
-                "SCP END"
-        );
+    // todo comment this method
+    public static String malformedMessage(String expectedMessage, String receivedMessage) {
+        return "Malformed message received. Expected \"" +
+                expectedMessage + "\" but instead got \"" + receivedMessage + "\"";
     }
 
     /**
@@ -158,5 +165,15 @@ public class ScpProtocol {
         return ("SCP DISCONNECT\n" +
                 "SCP END"
         );
+    }
+
+    /**
+     * States that the program can be in during execution
+     */
+    public enum state {
+        disconnected,
+        connected,
+        chatting,
+        exiting
     }
 }

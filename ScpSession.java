@@ -10,7 +10,6 @@ public class ScpSession {
     private int localPort;
     private long timeConnectInitiated;
     private String clientUsername;
-
     private String latestMsg;
 
     public String latest() {
@@ -61,11 +60,15 @@ public class ScpSession {
         this.timeConnectInitiated = timeConnectInitiated;
     }
 
-    public String getClientUsername() {
+    public String getLocalHost() {
         return clientUsername;
     }
 
     public void setClientUsername(String clientUsername) {
         this.clientUsername = clientUsername;
+    }
+
+    public String getClientUsername() {
+        return clientUsername;
     }
 }

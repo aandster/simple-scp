@@ -30,6 +30,8 @@ public class ChatClient {
             PORT_NUMBER = ScpProtocol.default_port;
         }
 
+        // todo do this through here after doing the ServerSocket
+
         // create the socket
 
         // send connection request to server
