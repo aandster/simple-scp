@@ -115,7 +115,7 @@ public class ChatServer {
                 }
                 // USERNAME field
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(USERNAME \") $(\")")) {
+                if (session.latest().matches("^(USERNAME ) ")) {
                     session.setClientUsername(session.latest().substring("USERNAME \"".length(), session.latest().length() - 1));
                 } else {
                     System.out.println(ScpProtocol.malformedMessage("USERNAME \"<username>\"", session.latest()));
@@ -161,7 +161,7 @@ public class ChatServer {
                 }
                 // Check ACK username
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(USERNAME \") $(\")")) {
+                if (session.latest().matches("^(USERNAME )")) {
                     String received_data = session.latest().substring("USERNAME \"".length(), session.latest().length() - 1);
                     if (!received_data.equalsIgnoreCase(session.getLocalHost())) {
                         // Username doesn't match connected username
