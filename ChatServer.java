@@ -79,14 +79,14 @@ public class ChatServer {
                 System.out.println("Waiting for CONNECT message");
                 // SCP CONNECT validation
                 session.setLatest(incoming.readLine());
-                if (!session.latest().matches("(SCP CONNECT)")) {
+                if (!session.latest().startsWith("SCP CONNECT")) {
                     System.out.println(ScpProtocol.malformedMessage("SCP Connect", session.latest()));
                     state = ScpProtocol.state.exiting;
                     break;
                 }
                 // SERVERADDRESS field
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(SERVERADDRESS )")) {
+                if (session.latest().startsWith("SERVERADDRESS ")) {
                     session.setRemoteHostname(session.latest().substring("SERVERADDRESS ".length(), session.latest().length()));
                 } else {
                     System.out.println(ScpProtocol.malformedMessage("SERVERADDRESS <hostname>", session.latest()));
@@ -95,7 +95,7 @@ public class ChatServer {
                 }
                 // SERVERPORT field
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(SERVERPORT )[0-9]+")) {
+                if (session.latest().startsWith("SERVERPORT ")) {
                     session.setRemotePort(Integer.parseInt(session.latest().substring("SERVERPORT ".length(), session.latest().length())));
                 } else {
                     System.out.println(ScpProtocol.malformedMessage("SERVERPORT <serverport>", session.latest()));
@@ -104,10 +104,10 @@ public class ChatServer {
                 }
                 // REQUESTCREATED field
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("(REQUESTCREATED )[0-9]+") &&
-                        session.latest().substring("REQUESTCREATED ".length(), session.latest().length() - 1).matches("[0-9]*")) {
+                if (session.latest().startsWith("REQUESTCREATED ") /*&&
+                        session.latest().substring("REQUESTCREATED ".length(), session.latest().length()).matches("[0-9]*")*/) {
                     // Check time differential
-                    session.setTimeConnectInitiated(Integer.parseInt(session.latest().substring("REQUESTCREATED ".length(), session.latest().length())));
+                    session.setTimeConnectInitiated(Long.parseLong(session.latest().substring("REQUESTCREATED ".length(), session.latest().length())));
                 } else {
                     System.out.println(ScpProtocol.malformedMessage("REQUESTCREATED <timerequestcreated>", session.latest()));
                     state = ScpProtocol.state.exiting;
@@ -115,7 +115,7 @@ public class ChatServer {
                 }
                 // USERNAME field
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(USERNAME ) ")) {
+                if (session.latest().startsWith("USERNAME \"")) {
                     session.setClientUsername(session.latest().substring("USERNAME \"".length(), session.latest().length() - 1));
                 } else {
                     System.out.println(ScpProtocol.malformedMessage("USERNAME \"<username>\"", session.latest()));
@@ -124,7 +124,7 @@ public class ChatServer {
                 }
                 // SCP END validation
                 session.setLatest(incoming.readLine());
-                if (!session.latest().matches("(SCP END)")) {
+                if (!session.latest().startsWith("SCP END")) {
                     System.out.println(ScpProtocol.malformedMessage("SCP END", session.latest()));
                     state = ScpProtocol.state.exiting;
                     break;
@@ -149,24 +149,24 @@ public class ChatServer {
 
                 // Send ACCEPT message
                 System.out.println("Sending ACCEPT message.");
-                outgoing.println(ScpProtocol.ACCEPT(session.getLocalHost(), session.getRemoteHostname(), session.getRemotePort()));
+                outgoing.println(ScpProtocol.ACCEPT(session.getUsername(), session.getRemoteHostname(), session.getRemotePort()));
                 System.out.println("Sent ACCEPT message. Waiting for ACKNOWLEDGEMENT message.");
 
                 // Receive ACKNOWLEDGE MESSAGE
                 session.setLatest(incoming.readLine());
-                if (!session.latest().matches("(SCP ACKNOWLEDGE)")) {
+                if (!session.latest().startsWith("SCP ACKNOWLEDGE")) {
                     System.out.println(ScpProtocol.malformedMessage("SCP ACKNOWLEDGE", session.latest()));
                     state = ScpProtocol.state.exiting;
                     break;
                 }
                 // Check ACK username
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(USERNAME )")) {
+                if (session.latest().startsWith("USERNAME \"")) {
                     String received_data = session.latest().substring("USERNAME \"".length(), session.latest().length() - 1);
-                    if (!received_data.equalsIgnoreCase(session.getLocalHost())) {
+                    if (!received_data.equalsIgnoreCase(session.getUsername())) {
                         // Username doesn't match connected username
                         System.out.println("Username is not from current session. Expected: \"" +
-                                session.getLocalHost() + "\" but got \"" + received_data + "\"");
+                                session.getUsername() + "\" but got \"" + received_data + "\"");
                         state = ScpProtocol.state.exiting;
                         break;
                     }
@@ -178,12 +178,12 @@ public class ChatServer {
                 }
                 // Check ACK server address
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(SERVERADDRESS )")) {
+                if (session.latest().startsWith("SERVERADDRESS ")) {
                     String received_data = session.latest().substring("SERVERADDRESS ".length(), session.latest().length());
-                    if (!received_data.equalsIgnoreCase(session.getLocalHost())) {
+                    if (!received_data.equalsIgnoreCase(session.getLocalHostname())) {
                         // Server hostname doesn't match connected username
                         System.out.println("Server address specified does not match this server. Expected: " +
-                                session.getLocalHost() + " but got " + received_data);
+                                session.getLocalHostname() + " but got " + received_data);
                         state = ScpProtocol.state.exiting;
                         break;
                     }
@@ -195,7 +195,7 @@ public class ChatServer {
                 }
                 // Check ACK server port
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("^(SERVERPORT )[0-9]+")) {
+                if (session.latest().startsWith("SERVERPORT ")) {
                     int received_data = Integer.parseInt(session.latest().substring("SERVERPORT ".length(), session.latest().length()));
                     if (received_data != session.getLocalPort()) {
                         // Server hostname doesn't match connected username
@@ -212,7 +212,7 @@ public class ChatServer {
                 }
                 // Check SCP END
                 session.setLatest(incoming.readLine());
-                if (!session.latest().matches("(SCP END)")) {
+                if (!session.latest().startsWith("SCP END")) {
                     System.out.println(ScpProtocol.malformedMessage("SCP END", session.latest()));
                     state = ScpProtocol.state.exiting;
                     break;
@@ -231,15 +231,15 @@ public class ChatServer {
                 // Check SCP CHAT/DISCONNECT header
                 System.out.println("Waiting for incoming message...");
                 session.setLatest(incoming.readLine());
-                if (session.latest().matches("(SCP CHAT)")) {
+                if (session.latest().startsWith("SCP CHAT")) {
                     // Check REMOTEADDRESS matches this address
                     session.setLatest(incoming.readLine());
-                    if (session.latest().matches("^(REMOTEADDRESS )")) {
+                    if (session.latest().startsWith("REMOTEADDRESS ")) {
                         String received_data = session.latest().substring("REMOTEADDRESS ".length(), session.latest().length());
-                        if (!received_data.equalsIgnoreCase(session.getLocalHost())) {
+                        if (!received_data.equalsIgnoreCase(session.getLocalHostname())) {
                             // Server hostname doesn't match connected username
                             System.out.println("Server address specified does not match this server. Expected: " +
-                                    session.getLocalHost() + " but got " + received_data);
+                                    session.getLocalHostname() + " but got " + received_data);
                             state = ScpProtocol.state.exiting;
                             break;
                         }
@@ -251,7 +251,7 @@ public class ChatServer {
                     }
                     // Check REMOTEPORT matches this address
                     session.setLatest(incoming.readLine());
-                    if (session.latest().matches("^(REMOTEPORT )[0-9]+")) {
+                    if (session.latest().startsWith("REMOTEPORT ")) {
                         int received_data = Integer.parseInt(session.latest().substring("REMOTEPORT ".length(), session.latest().length()));
                         if (received_data != session.getLocalPort()) {
                             // Server hostname doesn't match connected username
@@ -268,7 +268,7 @@ public class ChatServer {
                     }
                     // Check MESSAGECONTENT is valid
                     session.setLatest(incoming.readLine()); // should be MESSAGECONTENT
-                    if (!session.latest().matches("(MESSAGECONTENT)")) {
+                    if (!session.latest().startsWith("MESSAGECONTENT")) {
                         System.out.println(ScpProtocol.malformedMessage("MESSAGECONTENT", session.latest()));
                         state = ScpProtocol.state.exiting;
                         break;
@@ -286,9 +286,9 @@ public class ChatServer {
                         state = ScpProtocol.state.exiting;
                         break;
                     }
-                } else if (session.latest().matches("(SCP DISCONNECT)")) {
+                } else if (session.latest().startsWith("SCP DISCONNECT")) {
                     session.setLatest(incoming.readLine());
-                    if (!session.latest().matches("(SCP END)")) {
+                    if (!session.latest().startsWith("SCP END")) {
                         // Malformed DISCONNECT
                         System.out.println(ScpProtocol.malformedMessage("SCP END", session.latest()));
                         state = ScpProtocol.state.exiting;
@@ -317,13 +317,13 @@ public class ChatServer {
 
                     // Receive ACKNOWLEDGE
                     session.setLatest(incoming.readLine());
-                    if (!session.latest().matches("(SCP ACKNOWLEDGE)")) {
+                    if (!session.latest().startsWith("SCP ACKNOWLEDGE")) {
                         System.out.println(ScpProtocol.malformedMessage("SCP ACKNOWLEGE", session.latest()));
                         state = ScpProtocol.state.exiting;
                         break;
                     }
                     session.setLatest(incoming.readLine());
-                    if (!session.latest().matches("(SCP END)")) {
+                    if (!session.latest().startsWith("SCP END")) {
                         System.out.println(ScpProtocol.malformedMessage("SCP END", session.latest()));
                         state = ScpProtocol.state.exiting;
                         break;

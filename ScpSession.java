@@ -60,7 +60,7 @@ public class ScpSession {
         this.timeConnectInitiated = timeConnectInitiated;
     }
 
-    public String getLocalHost() {
+    public String getUsername() {
         return clientUsername;
     }
 
