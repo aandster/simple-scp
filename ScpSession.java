@@ -8,8 +8,9 @@ public class ScpSession {
     private int remotePort;
     private String localHostname;
     private int localPort;
-    private int timeConnectInitiated;
-    private String username;
+    private long timeConnectInitiated;
+    private String clientUsername;
+
     private String latestMsg;
 
     public String latest() {
@@ -52,19 +53,19 @@ public class ScpSession {
         this.localPort = localPort;
     }
 
-    public int getTimeConnectInitiated() {
+    public long getTimeConnectInitiated() {
         return timeConnectInitiated;
     }
 
-    public void setTimeConnectInitiated(int timeConnectInitiated) {
+    public void setTimeConnectInitiated(long timeConnectInitiated) {
         this.timeConnectInitiated = timeConnectInitiated;
     }
 
-    public String getUsername() {
-        return username;
+    public String getClientUsername() {
+        return clientUsername;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setClientUsername(String clientUsername) {
+        this.clientUsername = clientUsername;
     }
 }
